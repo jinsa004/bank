@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum UserEnem {
+public enum UserEnum {
   ADMIN("관리자"),
   CUSTOMER("고객");
 
