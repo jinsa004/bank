@@ -1,4 +1,4 @@
-package shop.mtcoding.bank.config.enums;
+package shop.mtcoding.bank.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -7,14 +7,15 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
-import shop.mtcoding.bank.handler.LoginHandler;
+import shop.mtcoding.bank.config.enums.UserEnum;
+import shop.mtcoding.bank.handler.CustomLoginHandler;
 
 // SecurityFilterChain
 @Configuration // IoC 컨테이너에 리턴 값을 재등록해주기 위해서 사용 // Configuration에는 Autowired로 DI해라.
 public class SecurityConfig {
 
     @Autowired
-    private LoginHandler loginHandler;
+    private CustomLoginHandler customLoginHandler;
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
@@ -37,8 +38,8 @@ public class SecurityConfig {
                 .usernameParameter("username") // username password 키값도 디폴트 값
                 .passwordParameter("password")
                 .loginProcessingUrl("/api/login")
-                .successHandler(loginHandler)
-                .failureHandler(loginHandler);
+                .successHandler(customLoginHandler)
+                .failureHandler(customLoginHandler);
 
         return http.build();
     }
