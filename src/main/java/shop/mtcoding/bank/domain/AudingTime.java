@@ -16,9 +16,9 @@ public abstract class AudingTime { // 얘 자체만 쓰지못하게 추상화
 
   @LastModifiedDate // Insert, update시에 현재시간 들어감
   @Column(nullable = false)
-  protected LocalDateTime updatedAt;
+  protected LocalDateTime updatedAt; // Entity로 넘길시 LocalDateTime을 스프링이 파싱하지 못하기 때문에 Dto로 넘겨주자!
 
-  @CreatedDate //Insert 시 현재시간 들어감
+  @CreatedDate // Insert 시 현재시간 들어감
   @Column(nullable = false)
   protected LocalDateTime createdAt;
 }
