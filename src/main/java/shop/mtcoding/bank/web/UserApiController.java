@@ -23,10 +23,10 @@ public class UserApiController {
 
     private final UserService userService;
 
-    // @GetMapping("/user/session")
-    // public String userSession(@AuthenticationPrincipal LoginUser loginUser) {
-    // return "username : " + loginUser.getUsername();
-    // }
+    @GetMapping("/user/session")
+    public String userSession(@AuthenticationPrincipal LoginUser loginUser) {
+        return "username : " + loginUser.getUsername();
+    }
 
     @PostMapping("/join")
     public ResponseEntity<?> join(@RequestBody JoinReqDto joinReqDto) {

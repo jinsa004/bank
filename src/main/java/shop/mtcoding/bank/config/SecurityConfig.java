@@ -1,45 +1,57 @@
 package shop.mtcoding.bank.config;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 import shop.mtcoding.bank.config.enums.UserEnum;
-import shop.mtcoding.bank.handler.CustomLoginHandler;
+import shop.mtcoding.bank.config.jwt.JwtAuthenticationFilter;
+import shop.mtcoding.bank.config.jwt.JwtAuthorizationFilter;
 
-// SecurityFilterChain
-@Configuration // IoC 컨테이너에 리턴 값을 재등록해주기 위해서 사용 // Configuration에는 Autowired로 DI해라.
+@Configuration
 public class SecurityConfig {
 
-    @Autowired
-    private CustomLoginHandler customLoginHandler;
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(); // 암호를 sha256썼었는데 이걸 걸어주면 안써도 됨
+        return new BCryptPasswordEncoder();
     }
 
-    @Bean // IoC 컨테이너에 리턴 값을 재등록해주기 위해서 사용
+    public class MyCustomDsl extends AbstractHttpConfigurer<MyCustomDsl, HttpSecurity> {
+        @Override
+        public void configure(HttpSecurity http) throws Exception {
+            log.debug("디버그 : SecurityConfig의 configure");
+            AuthenticationManager authenticationManager = http.getSharedObject(AuthenticationManager.class);
+            http.addFilter(new JwtAuthenticationFilter(authenticationManager));
+            http.addFilter(new JwtAuthorizationFilter(authenticationManager));
+        }
+    }
+
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        log.debug("디버그 : SecurityConfig의 filterChain");
         http.headers().frameOptions().disable();
-        http.csrf().disable(); // csrf란 내가 지정해준 코드를 바탕으로 브라우저에서 요청이 올 때 코드를 들고오게 설정해서 포스트맨이나 장난질치는걸 막으려고 하는 것
+        http.csrf().disable();
+
+        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+        http.formLogin().disable();
+        http.httpBasic().disable();
+        http.apply(new MyCustomDsl());
 
         http.authorizeHttpRequests()
                 .antMatchers("/api/transaction/**").authenticated()
                 .antMatchers("/api/user/**").authenticated()
                 .antMatchers("/api/account/**").authenticated()
                 .antMatchers("/api/admin/**").hasRole("ROLE_" + UserEnum.ADMIN)
-                .anyRequest().permitAll()
-                .and()
-                .formLogin() // 폼 로그인의 디폴트는 x-www-form-urlencoded (POST) (스프링의 기본 전략)
-                .usernameParameter("username") // username password 키값도 디폴트 값
-                .passwordParameter("password")
-                .loginProcessingUrl("/api/login")
-                .successHandler(customLoginHandler)
-                .failureHandler(customLoginHandler);
+                .anyRequest().permitAll();
 
         return http.build();
     }

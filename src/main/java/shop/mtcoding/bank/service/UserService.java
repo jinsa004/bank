@@ -24,7 +24,6 @@ public class UserService {
     public JoinRespDto 회원가입(JoinReqDto joinReqDto) {
         // 시큐리티는 비밀번호를 해쉬하지 않으면 자동으로 터져버린다.
         // 1. 비밀번호 암호화
-        log.debug("디버그 : 서비스시작");
         String rawPassword = joinReqDto.getPassword();
         String encPassword = passwordEncoder.encode(rawPassword);
         joinReqDto.setPassword(encPassword);
